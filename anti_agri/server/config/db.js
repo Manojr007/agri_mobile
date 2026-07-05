@@ -17,6 +17,14 @@ const connectDB = async () => {
         // Index might not exist, ignore
       }
 
+      // Drop name_1 index from counters
+      try {
+        await db.collection('counters').dropIndex('name_1');
+        console.log('✅ Dropped old unique index: counters.name_1');
+      } catch (e) {
+        // Index might not exist, ignore
+      }
+
       // Drop invoiceNumber_1 index from sales
       try {
         await db.collection('sales').dropIndex('invoiceNumber_1');
