@@ -53,8 +53,36 @@ app.get('/api/health', (req, res) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`🌾 AgriERP Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
 });
 
+// Graceful shutdown handler
+const gracefulShutdown = (signal) => {
+    console.log(`\nReceived ${signal}. Shutting down gracefully...`);
+    server.close(() => {
+        console.log('✔ HTTP server closed.');
+        const mongoose = require('mongoose');
+        mongoose.disconnect()
+            .then(() => {
+                console.log('✔ MongoDB connection closed.');
+                process.exit(0);
+            })
+            .catch((err) => {
+                console.error('❌ Error closing MongoDB connection:', err);
+                process.exit(1);
+            });
+    });
+
+    // Force exit after 10 seconds if connections hang
+    setTimeout(() => {
+        console.error('❌ Forcefully shutting down: connection close timed out.');
+        process.exit(1);
+    }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
 module.exports = app;
+
