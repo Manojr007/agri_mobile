@@ -25,7 +25,8 @@ const Layout = () => {
                                 {company.address?.pincode ? ` - ${company.address.pincode}` : ''}
                             </p>
                             <p style={{ margin: '3px 0', fontSize: '14px', fontWeight: '500', color: '#333' }}>
-                                {company.phone && `Phone: ${company.phone}`}
+                                {user?.name && `Owner/Proprietor: ${user.name}`}
+                                {company.phone && ` | Phone: ${company.phone}`}
                                 {company.email && ` | Email: ${company.email}`}
                                 {company.gstNumber && ` | GSTIN: ${company.gstNumber}`}
                             </p>
