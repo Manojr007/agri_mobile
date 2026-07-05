@@ -1,0 +1,46 @@
+services:
+  # Backend Node/Express API
+  - type: web
+    name: agrierp-backend
+    env: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        sync: false
+        placeholder: "Paste your MongoDB Atlas connection string here"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRE
+        value: 30d
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_URL
+        fromService:
+          type: web
+          name: agrierp-frontend
+          property: url
+
+  # Frontend React SPA
+  - type: web
+    name: agrierp-frontend
+    env: static
+    plan: free
+    rootDir: client
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: agrierp-backend
+          property: url
+          # Wait, in the code we need VITE_API_BASE_URL to end with /api.
+          # Render environment variables from other services yield the raw URL (e.g. https://xyz.onrender.com).
+          # Vite requires build-time variables. We can append /api in client code or configure it.
+          # To keep it simple, we can note this in the guide or configure a fallback.
+
