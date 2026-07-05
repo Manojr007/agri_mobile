@@ -4,7 +4,7 @@ services:
     name: agrierp-backend
     env: node
     plan: free
-    rootDir: server
+    rootDir: agrierp_copy/anti_agri/server
     buildCommand: npm install
     startCommand: node server.js
     envVars:
@@ -30,7 +30,7 @@ services:
     name: agrierp-frontend
     env: static
     plan: free
-    rootDir: client
+    rootDir: agrierp_copy/anti_agri/client
     buildCommand: npm install && npm run build
     publishPath: dist
     envVars:
@@ -39,8 +39,5 @@ services:
           type: web
           name: agrierp-backend
           property: url
-          # Wait, in the code we need VITE_API_BASE_URL to end with /api.
-          # Render environment variables from other services yield the raw URL (e.g. https://xyz.onrender.com).
-          # Vite requires build-time variables. We can append /api in client code or configure it.
-          # To keep it simple, we can note this in the guide or configure a fallback.
+
 
