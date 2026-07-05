@@ -381,3 +381,49 @@ tr:hover td {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Print styles */
+.print-header {
+  display: none;
+}
+
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .print-header {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .sidebar,
+  .no-print,
+  button,
+  .btn,
+  .card-header button,
+  .help-side,
+  .toast-container {
+    display: none !important;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .card {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Ensure grid layouts adapt well to printing */
+  .grid-2, .grid-3, .stats-grid {
+    display: block !important;
+  }
+}

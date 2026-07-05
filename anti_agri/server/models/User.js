@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema(
             enum: ['admin', 'staff'],
             default: 'staff',
         },
+        company: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Company',
+        },
         isActive: {
             type: Boolean,
             default: true,

@@ -10,25 +10,10 @@ const seed = async () => {
         await mongoose.connect(process.env.MONGO_URI);
         console.log('Connected to MongoDB for seeding...');
 
-        // Clear existing users to avoid duplicates
-        await User.deleteMany({ email: 'admin@agrierp.com' });
-
-        // Create Admin User
-        const admin = await User.create({
-            name: 'Agri Admin',
-            email: 'admin@agrierp.com',
-            password: 'password123',
-            role: 'admin'
-        });
-
-        console.log('✅ Admin User Created:');
-        console.log('Email: admin@agrierp.com');
-        console.log('Password: password123');
-
         // Create Default Company if not exists
-        const companyExists = await Company.findOne();
-        if (!companyExists) {
-            await Company.create({
+        let company = await Company.findOne({ name: 'AgriERP Retail' });
+        if (!company) {
+            company = await Company.create({
                 name: 'AgriERP Retail',
                 gstNumber: '27AAAAA0000A1Z5',
                 email: 'contact@agrierp.com',
@@ -44,6 +29,18 @@ const seed = async () => {
             });
             console.log('✅ Default Company Settings Created');
         }
+
+        // Clear existing users to avoid duplicates
+        await User.deleteMany({ email: 'admin@agrierp.com' });
+
+        // Create Admin User
+        const admin = await User.create({
+            name: 'Agri Admin',
+            email: 'admin@agrierp.com',
+            password: 'password123',
+            role: 'admin',
+            company: company._id
+        });
 
         process.exit(0);
     } catch (error) {

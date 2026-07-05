@@ -7,6 +7,7 @@ exports.createLedgerEntry = async (req, res, next) => {
         const { type, entryType, amount, party, description, date } = req.body;
 
         const entry = await Ledger.create({
+            company: req.user.company,
             type,
             entryType,
             amount,
@@ -27,7 +28,7 @@ exports.createLedgerEntry = async (req, res, next) => {
 // @route   DELETE /api/ledger/:id
 exports.deleteLedgerEntry = async (req, res, next) => {
     try {
-        const entry = await Ledger.findById(req.params.id);
+        const entry = await Ledger.findOne({ _id: req.params.id, company: req.user.company });
 
         if (!entry) {
             return res.status(404).json({ success: false, message: 'Entry not found' });

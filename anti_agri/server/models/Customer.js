@@ -7,6 +7,11 @@ const customerSchema = new mongoose.Schema(
             required: [true, 'Customer name is required'],
             trim: true,
         },
+        company: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Company',
+            required: [true, 'Company reference is required'],
+        },
         phone: {
             type: String,
             required: [true, 'Phone number is required'],

@@ -7,6 +7,11 @@ const batchSchema = new mongoose.Schema(
             ref: 'Product',
             required: [true, 'Product reference is required'],
         },
+        company: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Company',
+            required: [true, 'Company reference is required'],
+        },
         batchNumber: {
             type: String,
             required: [true, 'Batch number is required'],

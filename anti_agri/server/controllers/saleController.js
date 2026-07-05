@@ -11,7 +11,7 @@ const { generateInvoicePDF } = require('../utils/pdfGenerator');
 exports.getSales = async (req, res, next) => {
     try {
         const { page = 1, limit = 20, startDate, endDate, customer } = req.query;
-        let query = {};
+        let query = { company: req.user.company };
 
         if (startDate && endDate) {
             query.saleDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
@@ -41,7 +41,7 @@ exports.getSales = async (req, res, next) => {
 // @route   GET /api/sales/:id
 exports.getSale = async (req, res, next) => {
     try {
-        const sale = await Sale.findById(req.params.id)
+        const sale = await Sale.findOne({ _id: req.params.id, company: req.user.company })
             .populate('customer', 'name phone village aadhaar')
             .populate('items.product', 'name category brand unit hsnCode');
 
@@ -62,7 +62,7 @@ exports.createSale = async (req, res, next) => {
         const { customer, items, paymentMode, paidAmount, discount, notes, saleDate } = req.body;
 
         // Generate invoice number
-        const seq = await Counter.getNextSequence('sale');
+        const seq = await Counter.getNextSequence('sale', req.user.company);
         const invoiceNumber = `INV-${new Date().getFullYear()}-${String(seq).padStart(5, '0')}`;
 
         let subtotal = 0;
@@ -70,7 +70,7 @@ exports.createSale = async (req, res, next) => {
         const processedItems = [];
 
         for (const item of items) {
-            const batch = await Batch.findById(item.batch).populate('product');
+            const batch = await Batch.findOne({ _id: item.batch, company: req.user.company }).populate('product');
             if (!batch) {
                 return res.status(404).json({ success: false, message: `Batch ${item.batch} not found` });
             }
@@ -82,7 +82,11 @@ exports.createSale = async (req, res, next) => {
                 });
             }
 
-            const product = await Product.findById(batch.product._id);
+            const product = await Product.findOne({ _id: batch.product._id, company: req.user.company });
+            if (!product) {
+                return res.status(404).json({ success: false, message: `Product not found for batch` });
+            }
+            
             const itemTotal = item.quantity * (item.sellingPrice || batch.sellingPrice);
             const gstAmount = (itemTotal * (product.gstPercent || 0)) / 100;
 
@@ -114,6 +118,7 @@ exports.createSale = async (req, res, next) => {
         const actualPaid = paymentMode === 'Credit' ? 0 : (paidAmount || totalAmount);
 
         const sale = await Sale.create({
+            company: req.user.company,
             invoiceNumber,
             customer,
             items: processedItems,
@@ -129,7 +134,7 @@ exports.createSale = async (req, res, next) => {
         });
 
         // Update customer
-        const customerDoc = await Customer.findById(customer);
+        const customerDoc = await Customer.findOne({ _id: customer, company: req.user.company });
         if (customerDoc) {
             if (paymentMode === 'Credit') {
                 customerDoc.creditBalance += totalAmount;
@@ -141,6 +146,7 @@ exports.createSale = async (req, res, next) => {
         // Create ledger entry
         if (actualPaid > 0) {
             await Ledger.create({
+                company: req.user.company,
                 type: paymentMode === 'Bank' || paymentMode === 'UPI' ? 'Bank' : 'Cash',
                 entryType: 'Credit',
                 amount: actualPaid,
@@ -156,6 +162,7 @@ exports.createSale = async (req, res, next) => {
 
         if (paymentMode === 'Credit') {
             await Ledger.create({
+                company: req.user.company,
                 type: 'Credit',
                 entryType: 'Debit',
                 amount: totalAmount,
@@ -169,7 +176,7 @@ exports.createSale = async (req, res, next) => {
             });
         }
 
-        const populatedSale = await Sale.findById(sale._id)
+        const populatedSale = await Sale.findOne({ _id: sale._id, company: req.user.company })
             .populate('customer', 'name phone village')
             .populate('items.product', 'name category brand');
 
@@ -183,7 +190,7 @@ exports.createSale = async (req, res, next) => {
 // @route   GET /api/sales/:id/invoice
 exports.getInvoice = async (req, res, next) => {
     try {
-        const sale = await Sale.findById(req.params.id)
+        const sale = await Sale.findOne({ _id: req.params.id, company: req.user.company })
             .populate('customer', 'name phone village aadhaar')
             .populate('items.product', 'name category brand unit hsnCode gstPercent');
 
@@ -192,7 +199,7 @@ exports.getInvoice = async (req, res, next) => {
         }
 
         const Company = require('../models/Company');
-        const company = await Company.findOne();
+        const company = await Company.findById(req.user.company);
 
         const pdfBuffer = await generateInvoicePDF(sale, company);
 

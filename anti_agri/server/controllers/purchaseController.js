@@ -10,7 +10,7 @@ const Counter = require('../models/Counter');
 exports.getPurchases = async (req, res, next) => {
     try {
         const { page = 1, limit = 20, startDate, endDate } = req.query;
-        let query = {};
+        let query = { company: req.user.company };
 
         if (startDate && endDate) {
             query.purchaseDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
@@ -39,7 +39,7 @@ exports.getPurchases = async (req, res, next) => {
 // @route   GET /api/purchases/:id
 exports.getPurchase = async (req, res, next) => {
     try {
-        const purchase = await Purchase.findById(req.params.id)
+        const purchase = await Purchase.findOne({ _id: req.params.id, company: req.user.company })
             .populate('supplier', 'companyName gstNumber address')
             .populate('items.product', 'name category brand unit');
 
@@ -47,7 +47,10 @@ exports.getPurchase = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Purchase not found' });
         }
 
-        res.json({ success: true, data: purchase });
+        res.json({
+            success: true,
+            data: purchase,
+        });
     } catch (error) {
         next(error);
     }
@@ -60,7 +63,7 @@ exports.createPurchase = async (req, res, next) => {
         const { supplier, items, paymentMode, paidAmount, notes, purchaseDate } = req.body;
 
         // Generate invoice number
-        const seq = await Counter.getNextSequence('purchase');
+        const seq = await Counter.getNextSequence('purchase', req.user.company);
         const invoiceNumber = `PUR-${new Date().getFullYear()}-${String(seq).padStart(5, '0')}`;
 
         let subtotal = 0;
@@ -68,7 +71,7 @@ exports.createPurchase = async (req, res, next) => {
         const processedItems = [];
 
         for (const item of items) {
-            const product = await Product.findById(item.product);
+            const product = await Product.findOne({ _id: item.product, company: req.user.company });
             if (!product) {
                 return res.status(404).json({ success: false, message: `Product ${item.product} not found` });
             }
@@ -79,6 +82,7 @@ exports.createPurchase = async (req, res, next) => {
             // Create batch
             const batch = await Batch.create({
                 product: item.product,
+                company: req.user.company,
                 batchNumber: item.batchNumber,
                 expiryDate: item.expiryDate,
                 manufacturingDate: item.manufacturingDate,
@@ -114,6 +118,7 @@ exports.createPurchase = async (req, res, next) => {
         const totalAmount = subtotal + totalGST;
 
         const purchase = await Purchase.create({
+            company: req.user.company,
             invoiceNumber,
             supplier,
             items: processedItems,
@@ -128,7 +133,7 @@ exports.createPurchase = async (req, res, next) => {
         });
 
         // Update supplier outstanding
-        const supplierDoc = await Supplier.findById(supplier);
+        const supplierDoc = await Supplier.findOne({ _id: supplier, company: req.user.company });
         if (supplierDoc) {
             const creditAmount = totalAmount - (paidAmount || 0);
             supplierDoc.outstandingPayable += creditAmount;
@@ -139,6 +144,7 @@ exports.createPurchase = async (req, res, next) => {
         // Create ledger entry
         if (paidAmount > 0) {
             await Ledger.create({
+                company: req.user.company,
                 type: paymentMode === 'Bank' ? 'Bank' : 'Cash',
                 entryType: 'Debit',
                 amount: paidAmount,
@@ -152,7 +158,7 @@ exports.createPurchase = async (req, res, next) => {
             });
         }
 
-        const populatedPurchase = await Purchase.findById(purchase._id)
+        const populatedPurchase = await Purchase.findOne({ _id: purchase._id, company: req.user.company })
             .populate('supplier', 'companyName')
             .populate('items.product', 'name category brand');
 

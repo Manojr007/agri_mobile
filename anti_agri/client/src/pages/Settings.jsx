@@ -65,7 +65,7 @@ const Settings = () => {
                             <label>Company Name</label>
                             <input type="text" className="form-control" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
                         </div>
-                        <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                             <div className="form-group">
                                 <label>GST Number</label>
                                 <input type="text" className="form-control" value={formData.gstNumber} onChange={(e) => setFormData({ ...formData, gstNumber: e.target.value.toUpperCase() })} required />
@@ -73,6 +73,10 @@ const Settings = () => {
                             <div className="form-group">
                                 <label>Email Address</label>
                                 <input type="email" className="form-control" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                            </div>
+                            <div className="form-group">
+                                <label>Phone Number</label>
+                                <input type="text" className="form-control" value={formData.phone || ''} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
                             </div>
                         </div>
 

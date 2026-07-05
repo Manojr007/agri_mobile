@@ -15,30 +15,31 @@ exports.getDashboard = async (req, res, next) => {
 
         // Total sales this month
         const monthlySales = await Sale.aggregate([
-            { $match: { saleDate: { $gte: startOfMonth } } },
+            { $match: { saleDate: { $gte: startOfMonth }, company: req.user.company } },
             { $group: { _id: null, total: { $sum: '$totalAmount' }, count: { $sum: 1 } } },
         ]);
 
         // Total purchases this month
         const monthlyPurchases = await Purchase.aggregate([
-            { $match: { purchaseDate: { $gte: startOfMonth } } },
+            { $match: { purchaseDate: { $gte: startOfMonth }, company: req.user.company } },
             { $group: { _id: null, total: { $sum: '$totalAmount' }, count: { $sum: 1 } } },
         ]);
 
         // Total sales this year
         const yearlySales = await Sale.aggregate([
-            { $match: { saleDate: { $gte: startOfYear } } },
+            { $match: { saleDate: { $gte: startOfYear }, company: req.user.company } },
             { $group: { _id: null, total: { $sum: '$totalAmount' } } },
         ]);
 
         // Total purchases this year
         const yearlyPurchases = await Purchase.aggregate([
-            { $match: { purchaseDate: { $gte: startOfYear } } },
+            { $match: { purchaseDate: { $gte: startOfYear }, company: req.user.company } },
             { $group: { _id: null, total: { $sum: '$totalAmount' } } },
         ]);
 
         // Low stock count
         const lowStockCount = await Product.countDocuments({
+            company: req.user.company,
             $expr: { $lte: ['$totalStock', '$lowStockThreshold'] },
             isActive: true,
         });
@@ -47,13 +48,14 @@ exports.getDashboard = async (req, res, next) => {
         const thirtyDays = new Date();
         thirtyDays.setDate(thirtyDays.getDate() + 30);
         const expiringCount = await Batch.countDocuments({
+            company: req.user.company,
             expiryDate: { $lte: thirtyDays },
             quantity: { $gt: 0 },
         });
 
         // Top selling products (this month)
         const topProducts = await Sale.aggregate([
-            { $match: { saleDate: { $gte: startOfMonth } } },
+            { $match: { saleDate: { $gte: startOfMonth }, company: req.user.company } },
             { $unwind: '$items' },
             {
                 $group: {
@@ -69,7 +71,7 @@ exports.getDashboard = async (req, res, next) => {
 
         // Top customers
         const topCustomers = await Sale.aggregate([
-            { $match: { saleDate: { $gte: startOfMonth } } },
+            { $match: { saleDate: { $gte: startOfMonth }, company: req.user.company } },
             {
                 $group: {
                     _id: '$customer',
@@ -94,7 +96,7 @@ exports.getDashboard = async (req, res, next) => {
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
         const salesTrend = await Sale.aggregate([
-            { $match: { saleDate: { $gte: sixMonthsAgo } } },
+            { $match: { saleDate: { $gte: sixMonthsAgo }, company: req.user.company } },
             {
                 $group: {
                     _id: { year: { $year: '$saleDate' }, month: { $month: '$saleDate' } },
@@ -107,6 +109,7 @@ exports.getDashboard = async (req, res, next) => {
 
         // Total customers and outstanding credit
         const customerStats = await Customer.aggregate([
+            { $match: { company: req.user.company } },
             {
                 $group: {
                     _id: null,
@@ -118,7 +121,7 @@ exports.getDashboard = async (req, res, next) => {
 
         // Stock summary by category
         const stockSummary = await Product.aggregate([
-            { $match: { isActive: true } },
+            { $match: { isActive: true, company: req.user.company } },
             {
                 $group: {
                     _id: '$category',
@@ -162,12 +165,12 @@ exports.getProfitLoss = async (req, res, next) => {
         const end = endDate ? new Date(endDate) : new Date();
 
         const salesTotal = await Sale.aggregate([
-            { $match: { saleDate: { $gte: start, $lte: end } } },
+            { $match: { saleDate: { $gte: start, $lte: end }, company: req.user.company } },
             { $group: { _id: null, revenue: { $sum: '$totalAmount' }, gst: { $sum: '$totalGST' } } },
         ]);
 
         const purchaseTotal = await Purchase.aggregate([
-            { $match: { purchaseDate: { $gte: start, $lte: end } } },
+            { $match: { purchaseDate: { $gte: start, $lte: end }, company: req.user.company } },
             { $group: { _id: null, cost: { $sum: '$totalAmount' }, gst: { $sum: '$totalGST' } } },
         ]);
 
@@ -198,7 +201,7 @@ exports.getProfitLoss = async (req, res, next) => {
 // @route   GET /api/reports/stock-valuation
 exports.getStockValuation = async (req, res, next) => {
     try {
-        const batches = await Batch.find({ quantity: { $gt: 0 } })
+        const batches = await Batch.find({ quantity: { $gt: 0 }, company: req.user.company })
             .populate('product', 'name category brand unit');
 
         let totalValue = 0;
@@ -236,12 +239,12 @@ exports.getSalesReport = async (req, res, next) => {
         const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
         const end = endDate ? new Date(endDate) : new Date();
 
-        const sales = await Sale.find({ saleDate: { $gte: start, $lte: end } })
+        const sales = await Sale.find({ saleDate: { $gte: start, $lte: end }, company: req.user.company })
             .populate('customer', 'name phone village')
             .sort({ saleDate: -1 });
 
         const summary = await Sale.aggregate([
-            { $match: { saleDate: { $gte: start, $lte: end } } },
+            { $match: { saleDate: { $gte: start, $lte: end }, company: req.user.company } },
             {
                 $group: {
                     _id: null,
@@ -278,12 +281,12 @@ exports.getPurchaseReport = async (req, res, next) => {
         const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
         const end = endDate ? new Date(endDate) : new Date();
 
-        const purchases = await Purchase.find({ purchaseDate: { $gte: start, $lte: end } })
+        const purchases = await Purchase.find({ purchaseDate: { $gte: start, $lte: end }, company: req.user.company })
             .populate('supplier', 'companyName')
             .sort({ purchaseDate: -1 });
 
         const summary = await Purchase.aggregate([
-            { $match: { purchaseDate: { $gte: start, $lte: end } } },
+            { $match: { purchaseDate: { $gte: start, $lte: end }, company: req.user.company } },
             {
                 $group: {
                     _id: null,
@@ -308,7 +311,7 @@ exports.getPurchaseReport = async (req, res, next) => {
 exports.getLedgerReport = async (req, res, next) => {
     try {
         const { type, startDate, endDate } = req.query;
-        let query = {};
+        let query = { company: req.user.company };
 
         if (type) query.type = type;
         if (startDate && endDate) {

@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const ledgerSchema = new mongoose.Schema(
     {
+        company: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Company',
+            required: [true, 'Company reference is required'],
+        },
         type: {
             type: String,
             enum: ['Cash', 'Bank', 'Credit'],
@@ -32,6 +37,6 @@ const ledgerSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-ledgerSchema.index({ type: 1, date: -1 });
+ledgerSchema.index({ company: 1, type: 1, date: -1 });
 
 module.exports = mongoose.model('Ledger', ledgerSchema);

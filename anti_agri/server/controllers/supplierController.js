@@ -5,15 +5,13 @@ const Supplier = require('../models/Supplier');
 exports.getSuppliers = async (req, res, next) => {
     try {
         const { search, page = 1, limit = 20 } = req.query;
-        let query = {};
+        let query = { company: req.user.company };
 
         if (search) {
-            query = {
-                $or: [
-                    { companyName: { $regex: search, $options: 'i' } },
-                    { contactPerson: { $regex: search, $options: 'i' } },
-                ],
-            };
+            query.$or = [
+                { companyName: { $regex: search, $options: 'i' } },
+                { contactPerson: { $regex: search, $options: 'i' } },
+            ];
         }
 
         const suppliers = await Supplier.find(query)
@@ -37,7 +35,7 @@ exports.getSuppliers = async (req, res, next) => {
 // @route   GET /api/suppliers/:id
 exports.getSupplier = async (req, res, next) => {
     try {
-        const supplier = await Supplier.findById(req.params.id);
+        const supplier = await Supplier.findOne({ _id: req.params.id, company: req.user.company });
         if (!supplier) {
             return res.status(404).json({ success: false, message: 'Supplier not found' });
         }
@@ -51,7 +49,7 @@ exports.getSupplier = async (req, res, next) => {
 // @route   POST /api/suppliers
 exports.createSupplier = async (req, res, next) => {
     try {
-        const supplier = await Supplier.create(req.body);
+        const supplier = await Supplier.create({ ...req.body, company: req.user.company });
         res.status(201).json({ success: true, data: supplier });
     } catch (error) {
         next(error);
@@ -62,10 +60,11 @@ exports.createSupplier = async (req, res, next) => {
 // @route   PUT /api/suppliers/:id
 exports.updateSupplier = async (req, res, next) => {
     try {
-        const supplier = await Supplier.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true,
-        });
+        const supplier = await Supplier.findOneAndUpdate(
+            { _id: req.params.id, company: req.user.company },
+            req.body,
+            { new: true, runValidators: true }
+        );
         if (!supplier) {
             return res.status(404).json({ success: false, message: 'Supplier not found' });
         }
@@ -79,7 +78,7 @@ exports.updateSupplier = async (req, res, next) => {
 // @route   DELETE /api/suppliers/:id
 exports.deleteSupplier = async (req, res, next) => {
     try {
-        const supplier = await Supplier.findByIdAndDelete(req.params.id);
+        const supplier = await Supplier.findOneAndDelete({ _id: req.params.id, company: req.user.company });
         if (!supplier) {
             return res.status(404).json({ success: false, message: 'Supplier not found' });
         }

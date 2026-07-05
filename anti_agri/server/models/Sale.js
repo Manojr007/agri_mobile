@@ -14,10 +14,14 @@ const saleItemSchema = new mongoose.Schema({
 
 const saleSchema = new mongoose.Schema(
     {
+        company: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Company',
+            required: [true, 'Company reference is required'],
+        },
         invoiceNumber: {
             type: String,
             required: true,
-            unique: true,
         },
         customer: {
             type: mongoose.Schema.Types.ObjectId,
@@ -41,5 +45,7 @@ const saleSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+saleSchema.index({ company: 1, invoiceNumber: 1 }, { unique: true });
 
 module.exports = mongoose.model('Sale', saleSchema);

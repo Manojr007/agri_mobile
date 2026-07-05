@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema(
     {
+        company: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Company',
+            required: [true, 'Company reference is required'],
+        },
         name: {
             type: String,
             required: [true, 'Product name is required'],
@@ -23,7 +28,6 @@ const productSchema = new mongoose.Schema(
         },
         barcode: {
             type: String,
-            unique: true,
             sparse: true,
             trim: true,
         },
@@ -63,5 +67,6 @@ const productSchema = new mongoose.Schema(
 );
 
 productSchema.index({ name: 'text', brand: 'text', category: 'text' });
+productSchema.index({ company: 1, barcode: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('Product', productSchema);

@@ -6,22 +6,20 @@ const Sale = require('../models/Sale');
 exports.getCustomers = async (req, res, next) => {
     try {
         const { search, page = 1, limit = 20 } = req.query;
-        let query = {};
+        let query = { company: req.user.company };
 
         if (search) {
-            query = {
-                $or: [
-                    { name: { $regex: search, $options: 'i' } },
-                    { phone: { $regex: search, $options: 'i' } },
-                    { village: { $regex: search, $options: 'i' } },
-                ],
-            };
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { phone: { $regex: search, $options: 'i' } },
+                { village: { $regex: search, $options: 'i' } },
+            ];
         }
 
         const customers = await Customer.find(query)
-            .sort({ createdAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(parseInt(limit));
+             .sort({ createdAt: -1 })
+             .skip((page - 1) * limit)
+             .limit(parseInt(limit));
 
         const total = await Customer.countDocuments(query);
 
@@ -39,7 +37,7 @@ exports.getCustomers = async (req, res, next) => {
 // @route   GET /api/customers/:id
 exports.getCustomer = async (req, res, next) => {
     try {
-        const customer = await Customer.findById(req.params.id);
+        const customer = await Customer.findOne({ _id: req.params.id, company: req.user.company });
         if (!customer) {
             return res.status(404).json({ success: false, message: 'Customer not found' });
         }
@@ -53,7 +51,7 @@ exports.getCustomer = async (req, res, next) => {
 // @route   POST /api/customers
 exports.createCustomer = async (req, res, next) => {
     try {
-        const customer = await Customer.create(req.body);
+        const customer = await Customer.create({ ...req.body, company: req.user.company });
         res.status(201).json({ success: true, data: customer });
     } catch (error) {
         next(error);
@@ -64,10 +62,11 @@ exports.createCustomer = async (req, res, next) => {
 // @route   PUT /api/customers/:id
 exports.updateCustomer = async (req, res, next) => {
     try {
-        const customer = await Customer.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true,
-        });
+        const customer = await Customer.findOneAndUpdate(
+            { _id: req.params.id, company: req.user.company },
+            req.body,
+            { new: true, runValidators: true }
+        );
         if (!customer) {
             return res.status(404).json({ success: false, message: 'Customer not found' });
         }
@@ -81,7 +80,7 @@ exports.updateCustomer = async (req, res, next) => {
 // @route   DELETE /api/customers/:id
 exports.deleteCustomer = async (req, res, next) => {
     try {
-        const customer = await Customer.findByIdAndDelete(req.params.id);
+        const customer = await Customer.findOneAndDelete({ _id: req.params.id, company: req.user.company });
         if (!customer) {
             return res.status(404).json({ success: false, message: 'Customer not found' });
         }
@@ -95,12 +94,12 @@ exports.deleteCustomer = async (req, res, next) => {
 // @route   GET /api/customers/:id/history
 exports.getCustomerHistory = async (req, res, next) => {
     try {
-        const customer = await Customer.findById(req.params.id);
+        const customer = await Customer.findOne({ _id: req.params.id, company: req.user.company });
         if (!customer) {
             return res.status(404).json({ success: false, message: 'Customer not found' });
         }
 
-        const sales = await Sale.find({ customer: req.params.id })
+        const sales = await Sale.find({ customer: req.params.id, company: req.user.company })
             .populate('items.product', 'name category')
             .sort({ saleDate: -1 });
 

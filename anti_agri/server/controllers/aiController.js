@@ -25,7 +25,7 @@ exports.getDemandPrediction = async (req, res, next) => {
         twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
 
         const seasonalSales = await Sale.aggregate([
-            { $match: { saleDate: { $gte: twoYearsAgo } } },
+            { $match: { saleDate: { $gte: twoYearsAgo }, company: req.user.company } },
             { $unwind: '$items' },
             {
                 $addFields: { month: { $month: '$saleDate' } },
@@ -87,7 +87,7 @@ exports.getExpiryPrediction = async (req, res, next) => {
         const sixtyDays = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
         const ninetyDays = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
 
-        const allBatches = await Batch.find({ quantity: { $gt: 0 } })
+        const allBatches = await Batch.find({ quantity: { $gt: 0 }, company: req.user.company })
             .populate('product', 'name category brand unit');
 
         // Categorize by urgency
@@ -144,11 +144,11 @@ exports.getExpiryPrediction = async (req, res, next) => {
 // @route   GET /api/ai/credit-risk
 exports.getCreditRisk = async (req, res, next) => {
     try {
-        const customers = await Customer.find({ isActive: true });
+        const customers = await Customer.find({ isActive: true, company: req.user.company });
 
         const riskAnalysis = await Promise.all(
             customers.map(async (c) => {
-                const sales = await Sale.find({ customer: c._id }).sort({ saleDate: -1 }).limit(10);
+                const sales = await Sale.find({ customer: c._id, company: req.user.company }).sort({ saleDate: -1 }).limit(10);
 
                 // Risk factors
                 let riskScore = 0;

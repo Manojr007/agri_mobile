@@ -15,10 +15,14 @@ const purchaseItemSchema = new mongoose.Schema({
 
 const purchaseSchema = new mongoose.Schema(
     {
+        company: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Company',
+            required: [true, 'Company reference is required'],
+        },
         invoiceNumber: {
             type: String,
             required: [true, 'Invoice number is required'],
-            unique: true,
         },
         supplier: {
             type: mongoose.Schema.Types.ObjectId,
@@ -41,5 +45,7 @@ const purchaseSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+purchaseSchema.index({ company: 1, invoiceNumber: 1 }, { unique: true });
 
 module.exports = mongoose.model('Purchase', purchaseSchema);
