@@ -52,7 +52,7 @@ const productSchema = new mongoose.Schema(
         },
         totalStock: {
             type: Number,
-            default: 0,
+            default: 50,
         },
         lowStockThreshold: {
             type: Number,
