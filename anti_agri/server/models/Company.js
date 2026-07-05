@@ -11,7 +11,6 @@ const companySchema = new mongoose.Schema(
             type: String,
             required: [true, 'GST number is required'],
             uppercase: true,
-            match: [/^[0-9]{2}[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[0-9a-zA-Z]{1}[zZ][0-9a-zA-Z]{1}$/, 'Invalid GST number'],
         },
         address: {
             street: { type: String, trim: true },
