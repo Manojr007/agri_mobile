@@ -4,7 +4,7 @@ services:
     name: agrierp-backend
     env: node
     plan: free
-    rootDir: agrierp_copy/anti_agri/server
+    rootDir: anti_agri/server
     buildCommand: npm install
     startCommand: node server.js
     envVars:
@@ -30,7 +30,7 @@ services:
     name: agrierp-frontend
     env: static
     plan: free
-    rootDir: agrierp_copy/anti_agri/client
+    rootDir: anti_agri/client
     buildCommand: npm install && npm run build
     publishPath: dist
     envVars:
