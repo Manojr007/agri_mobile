@@ -41,6 +41,11 @@ const productSchema = new mongoose.Schema(
             default: 'Kg',
             enum: ['Kg', 'Litre', 'Packet', 'Bag', 'Bottle', 'Piece', 'Quintal', 'Ton'],
         },
+        size: {
+            type: String,
+            default: '1 kg',
+            trim: true,
+        },
         description: { type: String, trim: true },
         purchasePrice: {
             type: Number,

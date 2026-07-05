@@ -104,6 +104,7 @@ exports.createSale = async (req, res, next) => {
                 batch: batch._id,
                 batchNumber: batch.batchNumber,
                 quantity: item.quantity,
+                size: item.size || product.size || '',
                 sellingPrice: item.sellingPrice || batch.sellingPrice,
                 gstPercent: product.gstPercent,
                 gstAmount: gstAmount,

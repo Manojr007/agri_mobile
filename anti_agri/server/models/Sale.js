@@ -6,6 +6,7 @@ const saleItemSchema = new mongoose.Schema({
     batch: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch', required: true },
     batchNumber: { type: String },
     quantity: { type: Number, required: true, min: 1 },
+    size: { type: String, default: '' },
     sellingPrice: { type: Number, required: true, min: 0 },
     gstPercent: { type: Number, default: 0 },
     gstAmount: { type: Number, default: 0 },

@@ -66,7 +66,8 @@ const generateInvoicePDF = (sale, company) => {
             sale.items.forEach((item, i) => {
                 const y = doc.y;
                 doc.text(`${i + 1}`, 50, y, { width: 20 });
-                doc.text(item.productName || item.product?.name || '', 70, y, { width: 150 });
+                const nameWithSize = `${item.productName || item.product?.name || ''}${item.size ? ` (${item.size})` : ''}`;
+                doc.text(nameWithSize, 70, y, { width: 150 });
                 doc.text(item.batchNumber || '', 220, y, { width: 60 });
                 doc.text(`${item.quantity}`, 280, y, { width: 40, align: 'right' });
                 doc.text(`Rs. ${item.sellingPrice.toFixed(2)}`, 325, y, { width: 55, align: 'right' });
