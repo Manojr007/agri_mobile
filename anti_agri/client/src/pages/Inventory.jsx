@@ -261,9 +261,9 @@ const Inventory = () => {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <button className="btn btn-sm btn-outline" style={{ padding: '0.4rem' }} onClick={() => startEditing(p)} title="Edit"><FiEdit2 /></button>
-                                                    <button className="btn btn-sm btn-outline" style={{ padding: '0.4rem' }} onClick={() => handleViewBatches(p)} title="View Batches"><FiInfo /></button>
-                                                    <button className="btn btn-sm btn-outline" style={{ padding: '0.4rem', color: '#d32f2f', borderColor: '#ffcdd2' }} onClick={() => handleDeleteProduct(p._id)} title="Delete Product"><FiTrash2 /></button>
+                                                    <button className="btn btn-sm btn-outline" style={{ padding: '0.4rem 0.8rem' }} onClick={() => startEditing(p)} title="Edit"><FiEdit2 /> Edit</button>
+                                                    <button className="btn btn-sm btn-outline" style={{ padding: '0.4rem 0.8rem' }} onClick={() => handleViewBatches(p)} title="View Batches"><FiInfo /> Batches</button>
+                                                    <button className="btn btn-sm" style={{ padding: '0.4rem 0.8rem', color: 'white', backgroundColor: '#d32f2f', border: 'none' }} onClick={() => handleDeleteProduct(p._id)} title="Delete Product"><FiTrash2 /> Delete</button>
                                                 </>
                                             )}
                                         </div>
