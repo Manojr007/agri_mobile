@@ -10,10 +10,13 @@ const generateInvoicePDF = (sale, company) => {
             doc.on('end', () => resolve(Buffer.concat(buffers)));
 
             // Header
-            doc.fontSize(20).font('Helvetica-Bold').text(company?.name || 'AgriERP', { align: 'center' });
+            doc.fontSize(22).font('Helvetica-Bold').text(company?.name || 'AgriERP', { align: 'center' });
             doc.fontSize(10).font('Helvetica')
-                .text(company?.address ? `${company.address.street || ''}, ${company.address.city || ''}, ${company.address.state || ''}` : '', { align: 'center' });
-            doc.text(`GST: ${company?.gstNumber || 'N/A'} | Phone: ${company?.phone || ''}`, { align: 'center' });
+                .text(company?.address ? `${company.address.street || ''}, ${company.address.city || ''}, ${company.address.state || ''} - ${company.address.pincode || ''}` : '', { align: 'center' });
+            
+            const ownerName = sale.createdBy?.name || 'Owner';
+            doc.text(`Owner: ${ownerName} | GSTIN: ${company?.gstNumber || 'N/A'}`, { align: 'center' });
+            doc.text(`Phone: ${company?.phone || ''} | Email: ${company?.email || ''}`, { align: 'center' });
 
             doc.moveDown();
             doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke();

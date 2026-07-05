@@ -192,7 +192,8 @@ exports.getInvoice = async (req, res, next) => {
     try {
         const sale = await Sale.findOne({ _id: req.params.id, company: req.user.company })
             .populate('customer', 'name phone village aadhaar')
-            .populate('items.product', 'name category brand unit hsnCode gstPercent');
+            .populate('items.product', 'name category brand unit hsnCode gstPercent')
+            .populate('createdBy', 'name email');
 
         if (!sale) {
             return res.status(404).json({ success: false, message: 'Sale not found' });
