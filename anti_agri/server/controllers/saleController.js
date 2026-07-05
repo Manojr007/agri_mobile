@@ -202,6 +202,10 @@ exports.getInvoice = async (req, res, next) => {
         const Company = require('../models/Company');
         const company = await Company.findById(req.user.company);
 
+        if (!sale.createdBy) {
+            sale.createdBy = { name: req.user.name, email: req.user.email };
+        }
+
         const pdfBuffer = await generateInvoicePDF(sale, company);
 
         res.setHeader('Content-Type', 'application/pdf');
