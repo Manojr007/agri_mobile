@@ -38,12 +38,19 @@ exports.register = async (req, res, next) => {
         }
 
         const user = await User.create({ name, email, password, role, company: companyId });
+        const populatedUser = await User.findById(user._id).populate('company');
         const token = user.getSignedJwtToken();
 
         res.status(201).json({
             success: true,
             token,
-            user: { id: user._id, name: user.name, email: user.email, role: user.role, company: user.company },
+            user: {
+                id: populatedUser._id,
+                name: populatedUser.name,
+                email: populatedUser.email,
+                role: populatedUser.role,
+                company: populatedUser.company
+            },
         });
     } catch (error) {
         next(error);
@@ -70,12 +77,19 @@ exports.login = async (req, res, next) => {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
+        const populatedUser = await User.findById(user._id).populate('company');
         const token = user.getSignedJwtToken();
 
         res.json({
             success: true,
             token,
-            user: { id: user._id, name: user.name, email: user.email, role: user.role, company: user.company },
+            user: {
+                id: populatedUser._id,
+                name: populatedUser.name,
+                email: populatedUser.email,
+                role: populatedUser.role,
+                company: populatedUser.company
+            },
         });
     } catch (error) {
         next(error);

@@ -44,6 +44,16 @@ exports.updateCompany = async (req, res, next) => {
         }
 
         // Avoid CastError by changing empty strings for Dates to undefined (so defaults/existing values remain)
+        if (typeof updates.address === 'string') {
+            const parts = updates.address.split(',').map(s => s.trim());
+            updates.address = {
+                street: parts[0] || '',
+                city: parts[1] || '',
+                state: parts[2] || '',
+                pincode: parts[3] || '',
+            };
+        }
+
         if (updates.financialYearStart === '') {
             delete updates.financialYearStart;
         }
