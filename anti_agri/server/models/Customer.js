@@ -15,7 +15,6 @@ const customerSchema = new mongoose.Schema(
         phone: {
             type: String,
             required: [true, 'Phone number is required'],
-            match: [/^[6-9]\d{9}$/, 'Invalid Indian phone number'],
         },
         village: { type: String, trim: true },
         district: { type: String, trim: true },

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import {
     getProductsAPI, getLowStockAPI, getExpiringAPI,
-    createProductAPI, getProductBatchesAPI, updateProductAPI
+    createProductAPI, getProductBatchesAPI, updateProductAPI,
+    deleteProductAPI
 } from '../services/api';
-import { FiPlus, FiAlertCircle, FiSearch, FiPackage, FiInfo, FiEdit2, FiSave } from 'react-icons/fi';
+import { FiPlus, FiAlertCircle, FiSearch, FiPackage, FiInfo, FiEdit2, FiSave, FiTrash2 } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
 const Inventory = () => {
@@ -73,6 +74,20 @@ const Inventory = () => {
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to update product');
+        }
+    };
+
+    const handleDeleteProduct = async (id) => {
+        if (window.confirm('Are you sure you want to delete this product and all its stock batches?')) {
+            try {
+                const { data } = await deleteProductAPI(id);
+                if (data.success) {
+                    toast.success('Product deleted successfully');
+                    fetchData();
+                }
+            } catch (error) {
+                toast.error(error.response?.data?.message || 'Failed to delete product');
+            }
         }
     };
 
@@ -248,6 +263,7 @@ const Inventory = () => {
                                                 <>
                                                     <button className="btn btn-sm btn-outline" style={{ padding: '0.4rem' }} onClick={() => startEditing(p)} title="Edit"><FiEdit2 /></button>
                                                     <button className="btn btn-sm btn-outline" style={{ padding: '0.4rem' }} onClick={() => handleViewBatches(p)} title="View Batches"><FiInfo /></button>
+                                                    <button className="btn btn-sm btn-outline" style={{ padding: '0.4rem', color: '#d32f2f', borderColor: '#ffcdd2' }} onClick={() => handleDeleteProduct(p._id)} title="Delete Product"><FiTrash2 /></button>
                                                 </>
                                             )}
                                         </div>
