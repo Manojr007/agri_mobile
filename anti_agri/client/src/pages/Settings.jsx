@@ -45,7 +45,7 @@ const Settings = () => {
                 toast.success('Company settings updated');
             }
         } catch (error) {
-            toast.error('Failed to update settings');
+            toast.error(error.response?.data?.message || 'Failed to update settings');
         }
     };
 

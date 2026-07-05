@@ -38,6 +38,19 @@ exports.updateCompany = async (req, res, next) => {
         delete updates.createdAt;
         delete updates.updatedAt;
 
+        // Normalize GST number to uppercase and trim spaces
+        if (updates.gstNumber) {
+            updates.gstNumber = updates.gstNumber.toUpperCase().trim();
+        }
+
+        // Avoid CastError by changing empty strings for Dates to undefined (so defaults/existing values remain)
+        if (updates.financialYearStart === '') {
+            delete updates.financialYearStart;
+        }
+        if (updates.financialYearEnd === '') {
+            delete updates.financialYearEnd;
+        }
+
         let company = await Company.findByIdAndUpdate(req.user.company, updates, {
             new: true,
             runValidators: true,
