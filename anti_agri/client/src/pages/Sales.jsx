@@ -21,18 +21,33 @@ const Sales = () => {
     const [prodSearch, setProdSearch] = useState('');
     const [currProdBatches, setCurrProdBatches] = useState([]);
 
+    // Focus states for dropdowns
+    const [custFocused, setCustFocused] = useState(false);
+    const [prodFocused, setProdFocused] = useState(false);
+
     // Quick add customer
     const [showCustModal, setShowCustModal] = useState(false);
     const [newCust, setNewCust] = useState({ name: '', phone: '', village: '' });
 
     useEffect(() => {
-        if (custSearch.length > 2) fetchCustomers();
-        if (prodSearch.length > 2) fetchProducts();
-    }, [custSearch, prodSearch]);
+        fetchCustomers();
+    }, [custSearch]);
+
+    useEffect(() => {
+        if (prodSearch.length >= 8 && /^\d+$/.test(prodSearch)) {
+            // wait for barcode auto-fetch
+        } else {
+            fetchProducts();
+        }
+    }, [prodSearch]);
 
     const fetchCustomers = async () => {
-        const { data } = await getCustomersAPI({ search: custSearch });
-        setCustomers(data.data);
+        try {
+            const { data } = await getCustomersAPI({ search: custSearch });
+            setCustomers(data.data);
+        } catch (error) {
+            console.error('Failed to fetch customers', error);
+        }
     };
 
     const fetchProducts = async (isBarcode = false, code = '') => {
@@ -191,12 +206,14 @@ const Sales = () => {
                                         style={{ border: 'none', outline: 'none', width: '100%' }}
                                         value={custSearch}
                                         onChange={(e) => setCustSearch(e.target.value)}
+                                        onFocus={() => setCustFocused(true)}
+                                        onBlur={() => setTimeout(() => setCustFocused(false), 200)}
                                     />
                                 </div>
                                 <button className="btn btn-outline" style={{ padding: '0.5rem 1rem', whiteSpace: 'nowrap' }} onClick={() => setShowCustModal(true)}>
                                     <FiPlus /> New Farmer
                                 </button>
-                                {customers.length > 0 && (
+                                {custFocused && customers.length > 0 && (
                                     <div className="dropdown" style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: '1px solid #ddd', borderRadius: '8px', zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                                         {customers.map(c => (
                                             <div key={c._id} className="p-3 hover:bg-gray-50 cursor-pointer" style={{ borderBottom: '1px solid #eee' }} onClick={() => { setSelectedCustomer(c); setCustomers([]); setCustSearch(''); }}>
@@ -231,9 +248,11 @@ const Sales = () => {
                                         style={{ border: 'none', outline: 'none', width: '100%' }}
                                         value={prodSearch}
                                         onChange={(e) => handleProdSearchChange(e.target.value)}
+                                        onFocus={() => setProdFocused(true)}
+                                        onBlur={() => setTimeout(() => setProdFocused(false), 200)}
                                     />
                                 </div>
-                                {products.length > 0 && (
+                                {prodFocused && products.length > 0 && (
                                     <div className="dropdown" style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: '1px solid #ddd', borderRadius: '8px', zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                                         {products.map(p => (
                                             <div key={p._id} className="p-3 hover:bg-gray-50 cursor-pointer" style={{ borderBottom: '1px solid #eee' }} onClick={() => addItem(p)}>
